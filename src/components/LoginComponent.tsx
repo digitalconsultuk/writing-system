@@ -10,6 +10,7 @@ export default function LoginComponent() {
   const handleLogin = () => {
     console.log('Logging in with', email, password);
     // TODO: hook up to your auth logic
+    // add service call
   };
 
   return (
