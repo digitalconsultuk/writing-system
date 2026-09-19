@@ -1,67 +1,158 @@
+import Ionicons from "@expo/vector-icons/Ionicons";
+import { Link } from "expo-router";
+import { useState } from "react";
+import { Pressable, Text, TextInput, View } from "react-native";
+import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 
-import { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
-import { Link } from "expo-router"
+import { colors } from "@/theme";
 
 export default function LoginComponent() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [revealed, setRevealed] = useState(false);
+
+  const ready = email.trim().length > 0 && password.length > 0;
 
   const handleLogin = () => {
-    console.log('Logging in with', email, password);
+    console.log("Logging in with", email, password);
     // TODO: hook up to your auth logic
     // add service call
   };
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      className="flex-1 bg-white rounded-lg drop-shadow-lg"
+    <KeyboardAwareScrollView
+      style={{ flex: 1, backgroundColor: colors.ink }}
+      contentContainerStyle={{ flexGrow: 1, justifyContent: "center" }}
+      bottomOffset={24}
+      keyboardShouldPersistTaps="handled"
+      keyboardDismissMode="interactive"
+      showsVerticalScrollIndicator={false}
     >
-      <View className="flex-1 justify-center px-6">
-        <Text className="text-3xl font-bold text-black mb-2 text-center">
+      <View className="px-6 py-10">
+        {/* Brand mark */}
+        <View className="mb-8 items-center">
+          <View className="h-16 w-16 items-center justify-center rounded-2xl border-2 border-gold bg-ink-800">
+            <Ionicons name="book-sharp" size={28} color={colors.gold} />
+          </View>
+        </View>
+
+        <Text className="text-center text-3xl font-black uppercase tracking-[3px] text-gold">
           Welcome Back
         </Text>
-        <Text className="text-base text-gray-500 mb-8 text-center">
+        <Text className="mb-10 mt-2 text-center text-sm text-gold-700">
           Sign in to continue
         </Text>
 
-        <View className="mb-4">
-          <Text className="text-sm text-black mb-1">Email</Text>
-          <TextInput
-            className="border border-gray-300 rounded-lg px-4 py-3 text-base"
-            placeholder="you@example.com"
-            autoCapitalize="none"
-            keyboardType="email-address"
-            value={email}
-            onChangeText={setEmail}
-          />
-        </View>
+        <Field
+          label="Email"
+          placeholder="you@example.com"
+          value={email}
+          onChangeText={setEmail}
+          autoCapitalize="none"
+          autoCorrect={false}
+          keyboardType="email-address"
+          textContentType="emailAddress"
+          returnKeyType="next"
+        />
 
-        <View className="mb-6">
-          <Text className="text-sm text-black mb-1">Password</Text>
-          <TextInput
-            className="border border-gray-300 rounded-lg px-4 py-3 text-base text-black"
-            placeholder="••••••••"
-            secureTextEntry
-            value={password}
-            onChangeText={setPassword}
-          />
-        </View>
+        <Field
+          label="Password"
+          placeholder="••••••••"
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry={!revealed}
+          autoCapitalize="none"
+          autoCorrect={false}
+          textContentType="password"
+          returnKeyType="go"
+          onSubmitEditing={handleLogin}
+          accessory={
+            <Pressable
+              onPress={() => setRevealed((r) => !r)}
+              hitSlop={12}
+              accessibilityRole="button"
+              accessibilityLabel={revealed ? "Hide password" : "Show password"}
+            >
+              <Ionicons
+                name={revealed ? "eye-off-outline" : "eye-outline"}
+                size={20}
+                color={colors.goldDim}
+              />
+            </Pressable>
+          }
+        />
 
-        <TouchableOpacity
-          className="bg-black rounded-lg py-4 items-center"
-          onPress={handleLogin}
-        >
-          <Text className="text-white text-base font-semibold">Log In</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity className="mt-4 items-center">
-          <Text className="text-sm text-gray-500">
-            Don't have an account? <Text className="text-black font-semibold">Sign up</Text>
+        <Pressable className="mb-8 mt-1 self-end py-1 active:opacity-60">
+          <Text className="text-xs font-semibold uppercase tracking-[2px] text-gold-700">
+            Forgot password?
           </Text>
-        </TouchableOpacity>
+        </Pressable>
+
+        <Pressable
+          onPress={handleLogin}
+          disabled={!ready}
+          className={`items-center rounded-2xl py-4 active:opacity-80 ${
+            ready ? "bg-gold" : "bg-ink-700"
+          }`}
+        >
+          <Text
+            className={`text-sm font-black uppercase tracking-[3px] ${
+              ready ? "text-ink" : "text-gold-900"
+            }`}
+          >
+            Log In
+          </Text>
+        </Pressable>
+
+        <View className="mt-6 flex-row items-center justify-center">
+          <Text className="text-sm text-gold-700">
+            Don&apos;t have an account?{" "}
+          </Text>
+          <Link href="/RegisterScreen" asChild>
+            <Pressable className="active:opacity-60">
+              <Text className="text-sm font-bold text-gold">Sign up</Text>
+            </Pressable>
+          </Link>
+        </View>
       </View>
-    </KeyboardAvoidingView>
+    </KeyboardAwareScrollView>
+  );
+}
+
+type FieldProps = React.ComponentProps<typeof TextInput> & {
+  label: string;
+  /** Rendered inside the field box, e.g. a show/hide password toggle. */
+  accessory?: React.ReactNode;
+};
+
+function Field({ label, accessory, ...inputProps }: FieldProps) {
+  const [focused, setFocused] = useState(false);
+
+  return (
+    <View className="mb-5">
+      <Text className="mb-2 text-[10px] font-semibold uppercase tracking-[3px] text-gold-700">
+        {label}
+      </Text>
+      <View
+        className={`flex-row items-center rounded-2xl border-2 bg-ink-800 px-5 ${
+          focused ? "border-gold" : "border-ink-600"
+        }`}
+      >
+        <TextInput
+          className="flex-1 py-4 text-base font-semibold text-gold-50"
+          placeholderTextColor={colors.goldDark}
+          {...inputProps}
+          onFocus={(e) => {
+            setFocused(true);
+            inputProps.onFocus?.(e);
+          }}
+          onBlur={(e) => {
+            setFocused(false);
+            inputProps.onBlur?.(e);
+          }}
+        />
+        {accessory ? <View className="pl-3">{accessory}</View> : null}
+      </View>
+    </View>
   );
 }
