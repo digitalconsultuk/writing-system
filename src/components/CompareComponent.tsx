@@ -12,14 +12,16 @@ type Verdict = "idle" | "hit" | "miss";
 
 /** Pick a sign that is not the one already on screen. */
 function pickSign(exclude?: MappedDataSet): MappedDataSet {
-  const pool = exclude
+  const remaining = exclude
     ? SIGN_DATABASE.filter((entry) => entry.character !== exclude.character)
     : SIGN_DATABASE;
-  // pool is never empty - SIGN_DATABASE has 26 entries and we drop at most one.
+  // Dropping the current sign empties the pool while only one sign is mapped,
+  // so fall back to the full set and repeat it rather than picking nothing.
+  const pool = remaining.length > 0 ? remaining : SIGN_DATABASE;
   return pool[Math.floor(Math.random() * pool.length)]!;
 }
 
-export default function CompareComponent() {
+export default function CompareComponent() { 
   const [value, setValue] = useState("");
   // One sign per round, not the whole database.
   const [sign, setSign] = useState<MappedDataSet>(() => pickSign());
@@ -51,16 +53,20 @@ export default function CompareComponent() {
       () => setRound((r) => r + 1),
       ROUND_SECONDS * 1000,
     ); 
-     
     return () => {
       clearInterval(tick);
       clearTimeout(advance);
     };
   }, [round]);
 
-  // Warm the cache once so swapping to the next sign is instant.
+  // Warm the cache once so swapping to the next sign is instant. Bundled
+  // signs ship with the app, so only the remote ones are worth prefetching.
   useEffect(() => {
-    Image.prefetch(SIGN_DATABASE.map((entry) => entry.sign));
+    Image.prefetch(
+      SIGN_DATABASE.map((entry) => entry.sign).filter(
+        (sign) => typeof sign === "string",
+      ),
+    );
   }, []);
 
   const nextRound = useCallback(() => setRound((r) => r + 1), []);
@@ -142,7 +148,7 @@ export default function CompareComponent() {
     // directly. KeyboardAwareScrollView does that on both platforms and
     // scrolls the focused input clear of the keyboard.
     <KeyboardAwareScrollView
-      style={{ flex: 1, backgroundColor: colors.ink }}
+      style={{ flex: 1, backgroundColor: colors.ink, marginTop:-78 }}
       contentContainerStyle={{ flexGrow: 1 }}
       bottomOffset={24}
       keyboardShouldPersistTaps="handled"
@@ -185,7 +191,7 @@ export default function CompareComponent() {
                     // recyclingKey clears the old picture before the next sign
                     // loads, so a stale image is never shown against a new letter.
                     recyclingKey={sign.character}
-                    source={{ uri: sign.sign }}
+                    source={typeof sign.sign === "string" ? { uri: sign.sign } : sign.sign}
                     style={{
                       width: 140,
                       height: 140,
@@ -231,7 +237,7 @@ export default function CompareComponent() {
             </View>
             <View className="flex-row items-center justify-between bg-ink-700 px-5 py-3">
               <Text className="text-[10px] font-semibold uppercase tracking-[3px] text-gold-700">
-                New sign in
+                New Character in
               </Text>
               <Text
                 className={`text-sm font-black ${urgent ? "text-rose-400" : "text-gold-300"}`}
@@ -268,7 +274,7 @@ export default function CompareComponent() {
         </View>
 
         {/* Input */}
-        <Text className="mb-2 mt-4 text-[10px] font-semibold uppercase tracking-[3px] text-gold-700">
+        <Text className="mb-2 mt-1 text-[10px] font-semibold uppercase tracking-[3px] text-gold-700">
           Your answer
         </Text>
         <TextInput
@@ -297,7 +303,7 @@ export default function CompareComponent() {
           onPress={compareSignToLetter}
           disabled={!armed}
           accessibilityRole="button"
-          className={`items-center rounded-2xl py-4 active:opacity-80 ${
+          className={`items-center rounded-2xl py-4 active:opacity-80 mt-2 ${
             armed ? "bg-gold" : "bg-ink-700"
           }`}
         >

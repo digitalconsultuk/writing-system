@@ -2,6 +2,7 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { Image } from "expo-image";
 import { useState } from "react";
 import { FlatList, Pressable, Text, View } from "react-native";
+import { useRouter } from "expo-router";
 
 import { type BlogPost, DUMMY_POSTS } from "@/data/BlogData";
 import { colors } from "@/theme";
@@ -81,6 +82,7 @@ function BlogCard({ post, index, onPress }: Props) {
 
 export default function BlogComponent() {
   const [posts] = useState<BlogPost[]>(DUMMY_POSTS);
+  const router = useRouter()
 
   return (
     <View className="flex-1 bg-ink">
@@ -117,7 +119,12 @@ export default function BlogComponent() {
           <BlogCard
             post={item}
             index={index}
-            onPress={() => console.log("Open post", item.id)}
+            onPress={() =>
+              router.push({
+                pathname: "/post/[id]",
+                params: { id: item.id },
+              })
+            }
           />
         )}
       />

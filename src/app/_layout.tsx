@@ -22,6 +22,11 @@ export default function RootLayout() {
         }}
       >
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        {/* Without this the header title falls back to the route name, "[id]". */}
+        <Stack.Screen
+          name="post/[id]"
+          options={{ title: "", headerBackTitle: "Blog" }}
+        />
       </Stack>
     </KeyboardProvider>
   );

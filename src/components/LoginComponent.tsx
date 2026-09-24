@@ -108,7 +108,7 @@ export default function LoginComponent() {
           <Text className="text-sm text-gold-700">
             Don&apos;t have an account?{" "}
           </Text>
-          <Link href="/RegisterScreen" asChild>
+          <Link href="/post/[id]" asChild>
             <Pressable className="active:opacity-60">
               <Text className="text-sm font-bold text-gold">Sign up</Text>
             </Pressable>

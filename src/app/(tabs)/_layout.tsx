@@ -56,7 +56,7 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="RegisterScreen"
+        name="CompareScreen"
         options={{
           title: "Play",
           tabBarIcon: ({ color, focused }) => (
